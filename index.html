@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>任务追踪器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1em;
+            background-color: #6200ea;
+            color: white;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        .menu-button {
+            font-size: 1.5em;
+            cursor: pointer;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .menu-button .dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: white;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .menu-button:hover .dropdown {
+            display: block;
+        }
+
+        .dropdown a {
+            display: flex;
+            align-items: center;
+            padding: 0.5em 1em;
+            text-decoration: none;
+            color: #6200ea;
+            font-size: 1em;
+        }
+
+        .dropdown a:hover {
+            background-color: #e0e0e0;
+        }
+
+        .task-container {
+            padding: 2em;
+            margin-left: 3em; /* Shift tasks to the right */
+        }
+
+        .task {
+            background: white;
+            margin: 1em 0;
+            padding: 1em;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .progress-bar {
+            height: 20px;
+            border-radius: 10px;
+            background: #e0e0e0;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 0.5em;
+            z-index: 10;
+        }
+
+        .progress-bar div {
+            height: 100%;
+            background: #6200ea;
+            width: 0;
+            transition: width 0.5s ease;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1em;
+            background-color: #6200ea;
+            color: white;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .add-task-button {
+            background: white;
+            color: #6200ea;
+            border: none;
+            padding: 0.5em 1em;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .add-task-button:hover {
+            background: #e0e0e0;
+        }
+
+        .delete-task-button {
+            background: red;
+            color: white;
+            border: none;
+            padding: 0.5em 1em;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-left: 1em;
+        }
+
+        .delete-task-button:hover {
+            background: darkred;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <span class="menu-button">☰
+            <div class="dropdown">
+                <a href="calendar.html">📅 日历</a>
+                <a href="memo.html">📝 便利贴</a>
+            </div>
+        </span>
+        <h1>任务追踪器</h1>
+        <button class="add-task-button" onclick="addTask()">添加任务</button>
+    </header>
+
+    <div class="task-container" id="taskContainer">
+        <!-- Task elements will be added here -->
+    </div>
+
+    <footer>
+        制作属于你的高效生活！
+    </footer>
+
+    <script>
+        let taskCounter = 0;
+
+        function addTask() {
+            const taskContainer = document.getElementById('taskContainer');
+            const taskId = `task-${taskCounter++}`;
+
+            const taskDiv = document.createElement('div');
+            taskDiv.classList.add('task');
+
+            taskDiv.innerHTML = `
+                <h3>任务名称 <input type="text" class="task-name" placeholder="输入任务名称"></h3>
+                <label>
+                    开始日期: <input type="date" class="start-date" onchange="validateAndSaveTask(this)">
+                </label>
+                <label>
+                    目标时长: <input type="number" class="target-days" placeholder="输入目标天数" min="1" onchange="validateAndSaveTask(this)"> 天
+                </label>
+                <label>
+                    结束日期: <input type="date" readonly>
+                </label>
+                <div class="progress-bar">
+                    <div></div>
+                </div>
+                <p>已坚持<span class="streak">0</span>天，继续加油！</p>
+                <button onclick="markProgress(this)">打卡</button>
+                <button class="delete-task-button" onclick="deleteTask(this)">删除任务</button>
+            `;
+
+            taskDiv.setAttribute('id', taskId);
+            taskContainer.appendChild(taskDiv);
+        }
+
+        function validateAndSaveTask(input) {
+            const taskDiv = input.closest('.task');
+            const taskNameInput = taskDiv.querySelector('.task-name');
+            const startDateInput = taskDiv.querySelector('.start-date');
+            const targetDaysInput = taskDiv.querySelector('.target-days');
+            const endDateInput = taskDiv.querySelector('input[type="date"][readonly]');
+
+            if (!taskNameInput.value) {
+                alert('未输入任务名称，未成功保存');
+                return;
+            }
+
+            if (!startDateInput.value) {
+                alert('未输入开始日期，未成功保存');
+                return;
+            }
+
+            if (!targetDaysInput.value) {
+                alert('未输入目标时长，未成功保存');
+                return;
+            }
+
+            const startDate = new Date(startDateInput.value);
+            const targetDays = parseInt(targetDaysInput.value) || 0;
+
+            if (!isNaN(startDate) && targetDays > 0) {
+                const endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + targetDays);
+                endDateInput.value = endDate.toISOString().split('T')[0];
+            }
+
+            saveTasks();
+        }
+
+        function markProgress(button) {
+            const taskDiv = button.parentElement;
+            const progressBar = taskDiv.querySelector('.progress-bar div');
+            const streak = taskDiv.querySelector('.streak');
+            const targetDaysInput = taskDiv.querySelector('.target-days');
+            const endDateInput = taskDiv.querySelector('input[type="date"][readonly]');
+
+            const targetDays = parseInt(targetDaysInput.value) || 1;
+            let currentStreak = parseInt(streak.textContent);
+            const today = new Date();
+            const endDate = new Date(endDateInput.value);
+
+            if (currentStreak < targetDays && today <= endDate) {
+                currentStreak++;
+                streak.textContent = currentStreak;
+                const progress = (currentStreak / targetDays) * 100;
+                progressBar.style.width = `${Math.min(progress, 100)}%`;
+            } else if (today > endDate) {
+                streak.textContent = targetDays;
+                progressBar.style.width = `100%`;
+            }
+
+            saveTasks();
+        }
+
+        function deleteTask(button) {
+            const taskDiv = button.parentElement;
+            taskDiv.remove();
+            saveTasks();
+        }
+
+        function saveTasks() {
+            const tasks = [];
+            document.querySelectorAll('.task').forEach(taskDiv => {
+                const nameInput = taskDiv.querySelector('input[type="text"]');
+                const targetDaysInput = taskDiv.querySelector('.target-days');
+                const streak = taskDiv.querySelector('.streak');
+                const progressBar = taskDiv.querySelector('.progress-bar div');
+                const startDateInput = taskDiv.querySelector('.start-date');
+                const endDateInput = taskDiv.querySelector('input[type="date"][readonly]');
+
+                tasks.push({
+                    name: nameInput.value,
+                    startDate: startDateInput.value,
+                    targetDays: targetDaysInput.value,
+                    streak: streak.textContent,
+                    progressWidth: progressBar.style.width,
+                    endDate: endDateInput.value
+                });
+            });
+
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        function loadTasks() {
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks.forEach(task => {
+                const taskDiv = document.createElement('div');
+                taskDiv.classList.add('task');
+                taskDiv.innerHTML = `
+                    <h3>任务名称 <input type="text" class="task-name" placeholder="输入任务名称" value="${task.name}"></h3>
+                    <label>
+                        开始日期: <input type="date" class="start-date" value="${task.startDate}">
+                    </label>
+                    <label>
+                        目标时长: <input type="number" class="target-days" value="${task.targetDays}">
+                    </label>
+                    <label>
+                        结束日期: <input type="date" readonly value="${task.endDate}">
+                    </label>
+                    <div class="progress-bar">
+                        <div style="width: ${task.progressWidth};"></div>
+                    </div>
+                    <p>已坚持<span class="streak">${task.streak}</span>天，继续加油！</p>
+                    <button onclick="markProgress(this)">打卡</button>
+                    <button class="delete-task-button" onclick="deleteTask(this)">删除任务</button>
+                `;
+                document.getElementById('taskContainer').appendChild(taskDiv);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadTasks);
+    </script>
+</body>
+</html>

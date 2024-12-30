@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>便利贴</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1em;
+            background-color: #6200ea;
+            color: white;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        .back-button {
+            color: white;
+            text-decoration: none;
+            font-size: 1em;
+        }
+
+        .memo-container {
+            max-width: 400px;
+            margin: 2em auto;
+            padding: 1em;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .memo {
+            margin: 1em 0;
+            padding: 1em;
+            background: #ffe082;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .memo h3 {
+            margin: 0 0 0.5em;
+        }
+
+        .delete-memo {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .add-memo-button {
+            background: #6200ea;
+            color: white;
+            border: none;
+            padding: 0.5em 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block;
+            margin: 1em auto;
+            text-align: center;
+        }
+
+        .add-memo-button:hover {
+            background: #4500b5;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" class="back-button">返回</a>
+        <h1>便利贴</h1>
+    </header>
+
+    <div class="memo-container" id="memoContainer">
+        <!-- Memo elements will be added here -->
+    </div>
+
+    <button class="add-memo-button" onclick="addMemo()">添加便利贴</button>
+
+    <script>
+        function addMemo() {
+            const memoContainer = document.getElementById('memoContainer');
+
+            const memoDiv = document.createElement('div');
+            memoDiv.classList.add('memo');
+
+            const memoId = `memo-${Date.now()}`;
+
+            memoDiv.innerHTML = `
+                <h3>便利贴内容</h3>
+                <textarea rows="4" placeholder="写下你的便利贴内容..."></textarea>
+                <label>
+                    时间: <input type="datetime-local">
+                </label>
+                <button class="delete-memo" onclick="deleteMemo('${memoId}')">删除</button>
+            `;
+
+            memoDiv.setAttribute('id', memoId);
+            memoContainer.appendChild(memoDiv);
+
+            saveMemos();
+        }
+
+        function deleteMemo(memoId) {
+            const memoDiv = document.getElementById(memoId);
+            if (memoDiv) memoDiv.remove();
+            saveMemos();
+        }
+
+        function saveMemos() {
+            const memos = [];
+            document.querySelectorAll('.memo').forEach(memoDiv => {
+                const content = memoDiv.querySelector('textarea').value;
+                const time = memoDiv.querySelector('input[type="datetime-local"]').value;
+                memos.push({ content, time });
+            });
+            localStorage.setItem('memos', JSON.stringify(memos));
+        }
+
+        function loadMemos() {
+            const memos = JSON.parse(localStorage.getItem('memos')) || [];
+            memos.forEach(memo => {
+                const memoContainer = document.getElementById('memoContainer');
+
+                const memoDiv = document.createElement('div');
+                memoDiv.classList.add('memo');
+
+                const memoId = `memo-${Date.now()}`;
+
+                memoDiv.innerHTML = `
+                    <h3>便利贴内容</h3>
+                    <textarea rows="4">${memo.content}</textarea>
+                    <label>
+                        时间: <input type="datetime-local" value="${memo.time}">
+                    </label>
+                    <button class="delete-memo" onclick="deleteMemo('${memoId}')">删除</button>
+                `;
+
+                memoDiv.setAttribute('id', memoId);
+                memoContainer.appendChild(memoDiv);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadMemos);
+    </script>
+</body>
+</html>
