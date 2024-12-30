@@ -35,28 +35,25 @@
         .menu-button .dropdown {
             display: none;
             position: absolute;
-            top: 100%;
+            top: 100%; /* Dropdown expands downward */
             left: 0;
             background-color: white;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             border-radius: 4px;
             overflow: hidden;
+            z-index: 1000;
+            width: 150px;
         }
 
-        .menu-button:hover .dropdown {
+        .menu-button .dropdown a {
             display: block;
-        }
-
-        .dropdown a {
-            display: flex;
-            align-items: center;
             padding: 0.5em 1em;
             text-decoration: none;
             color: #6200ea;
             font-size: 1em;
         }
 
-        .dropdown a:hover {
+        .menu-button .dropdown a:hover {
             background-color: #e0e0e0;
         }
 
@@ -132,7 +129,8 @@
 </head>
 <body>
     <header>
-        <span class="menu-button">☰
+        <span class="menu-button">
+            ☰
             <div class="dropdown">
                 <a href="calendar.html">📅 日历</a>
                 <a href="memo.html">📝 便利贴</a>
@@ -298,7 +296,16 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', loadTasks);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTasks();
+
+            const menuButton = document.querySelector('.menu-button');
+            const dropdown = document.querySelector('.dropdown');
+
+            menuButton.addEventListener('click', () => {
+                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            });
+        });
     </script>
 </body>
 </html>
